@@ -17,6 +17,8 @@ router.post('/register', (req, res) => {
 
     Auth.add(newUser)
         .then(u => {
+            console.log(req.session);
+            req.session.loggedIn = true;
             res.status(201).json(newUser);
         })
         .catch(e => {
@@ -33,6 +35,10 @@ router.post('/login', (req, res) => {
         .first()
         .then(user => {
             if (user && bcrypt.compareSync(password, user.password)) {
+                console.log(req.session);
+                req.session.loggedIn = true;
+                req.session.username = user.username;
+
                 res.status(200).json({ message: `You have successfully logged in, ${user.username}` });
             }
             else {
@@ -43,5 +49,23 @@ router.post('/login', (req, res) => {
             res.status(500).json(err);
         })
 });
+
+/* Logout */
+router.get('/logout', (req, res) => {
+    if (req.session) {
+        req.session.destroy(err => {
+            if (err) {
+                res.status(500).json({ error: 'Something went wrong.' });
+            }
+            else {
+                res.status(200).json({ error: 'Successfully logged out.' })
+            }
+        });
+    }
+    else {
+        res.status(200).json({ error: 'Sorry about that.' })
+    }
+})
+
 
 module.exports = router;
